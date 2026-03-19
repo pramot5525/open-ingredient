@@ -5,8 +5,11 @@ Table recipes {
   id            integer     [primary key]
   name_th       varchar(255)
   name_en       varchar(255)
+  category_id   integer     [ref: > categories.id]
   energy        float
   energy_unit   integer     [ref: > units.id]
+  source        varchar     [note: "e.g. thaifcd"]
+  source_id     varchar     [note: "original id from source"]
 }
 
 Table recipe_processes {
@@ -57,6 +60,15 @@ Table categories {
 Table food_nutrients {
   id          integer  [primary key]
   food_id     integer  [ref: > foods.id]
+  nutrient_id integer  [ref: > nutrients.id]
+  amount      float
+  unit        integer  [ref: > units.id]
+  operator    varchar  [note: "<, ~, >"]
+}
+
+Table recipe_nutrients {
+  id          integer  [primary key]
+  recipe_id   integer  [ref: > recipes.id]
   nutrient_id integer  [ref: > nutrients.id]
   amount      float
   unit        integer  [ref: > units.id]
