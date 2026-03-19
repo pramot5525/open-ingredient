@@ -22,6 +22,7 @@ type Food struct {
 	CategoryID *uint
 	Weight     *float64 // base weight in grams (usually 100)
 	Energy     *float64 // kcal for base weight
+	IsRecipe   bool
 	Source     *string
 	SourceID   *string
 	Nutrients  []FoodNutrient

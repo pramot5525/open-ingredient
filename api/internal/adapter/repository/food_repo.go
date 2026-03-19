@@ -28,11 +28,10 @@ type nutrientModel struct {
 func (nutrientModel) TableName() string { return "nutrients" }
 
 type foodNutrientModel struct {
-	ID         uint          `gorm:"primaryKey;column:id"`
-	FoodID     uint          `gorm:"column:food_id"`
-	NutrientID uint          `gorm:"column:nutrient_id"`
+	FoodID     uint          `gorm:"primaryKey;column:food_id"`
+	NutrientID uint          `gorm:"primaryKey;column:nutrient_id"`
 	Amount     *float64      `gorm:"column:amount"`
-	UnitID     *uint         `gorm:"column:unit"` // column name is "unit" in schema
+	UnitID     *uint         `gorm:"column:unit_id"`
 	Operator   *string       `gorm:"column:operator"`
 	Nutrient   nutrientModel `gorm:"foreignKey:NutrientID;references:ID"`
 	Unit       unitModel     `gorm:"foreignKey:UnitID;references:ID"`
@@ -49,6 +48,7 @@ type foodModel struct {
 	WeightUnit    *uint               `gorm:"column:weight_unit"`
 	Energy        *float64            `gorm:"column:energy"`
 	EnergyUnit    *uint               `gorm:"column:energy_unit"`
+	IsRecipe      bool                `gorm:"column:is_recipe"`
 	Source        *string             `gorm:"column:source"`
 	SourceID      *string             `gorm:"column:source_id"`
 	FoodNutrients []foodNutrientModel `gorm:"foreignKey:FoodID"`
@@ -147,6 +147,7 @@ func toDomain(m foodModel) food.Food {
 		CategoryID: m.CategoryID,
 		Weight:     m.Weight,
 		Energy:     m.Energy,
+		IsRecipe:   m.IsRecipe,
 		Source:     m.Source,
 		SourceID:   m.SourceID,
 		Nutrients:  nutrients,

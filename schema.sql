@@ -37,57 +37,47 @@ CREATE TABLE nutrients (
     parent_id INT          REFERENCES nutrients(id)  -- null = root
 );
 
-CREATE TABLE recipes (
-    id           SERIAL       PRIMARY KEY,
-    name_th      VARCHAR(255),
-    name_en      VARCHAR(255),
-    category_id  INT          REFERENCES categories(id),
-    energy       FLOAT,
-    energy_unit  INT          REFERENCES units(id),
-    source       VARCHAR,     -- e.g. thaifcd
-    source_id    VARCHAR      -- original id from source
-);
-
-CREATE TABLE recipe_processes (
-    id          SERIAL  PRIMARY KEY,
-    recipe_id   INT     NOT NULL REFERENCES recipes(id),
-    process_id  INT     NOT NULL REFERENCES processes(id)
-);
-
-CREATE TABLE recipe_flavors (
-    id        SERIAL  PRIMARY KEY,
-    recipe_id INT     NOT NULL REFERENCES recipes(id),
-    flavor_id INT     NOT NULL REFERENCES flavors(id),
-    level     INT
-);
-
 CREATE TABLE foods (
-    id           SERIAL       PRIMARY KEY,
+    id           SERIAL        PRIMARY KEY,
     name_th      VARCHAR(255),
     name_en      VARCHAR(255),
-    category_id  INT          REFERENCES categories(id),
-    weight       FLOAT,
-    weight_unit  INT          REFERENCES units(id),
+    category_id  INT           REFERENCES categories(id),
+    weight       FLOAT,        -- serving size (optional สำหรับ raw food)
+    weight_unit  INT           REFERENCES units(id),
     energy       FLOAT,
-    energy_unit  INT          REFERENCES units(id),
+    energy_unit  INT           REFERENCES units(id),
+    is_recipe    BOOLEAN       DEFAULT false,  -- flag ว่าเป็นสูตรอาหาร
     source       VARCHAR,
     source_id    VARCHAR
 );
 
-CREATE TABLE food_nutrients (
-    id          SERIAL   PRIMARY KEY,
-    food_id     INT      NOT NULL REFERENCES foods(id),
-    nutrient_id INT      NOT NULL REFERENCES nutrients(id),
-    amount      FLOAT,
-    unit        INT      REFERENCES units(id),
-    operator    VARCHAR  -- <, ~, >
+-- Self-referential ingredients (recipes composed of foods)
+CREATE TABLE food_ingredients (
+    food_id        INT    NOT NULL REFERENCES foods(id),  -- recipe
+    ingredient_id  INT    NOT NULL REFERENCES foods(id),  -- component
+    amount         FLOAT,
+    unit_id        INT    REFERENCES units(id),
+    PRIMARY KEY (food_id, ingredient_id)
 );
 
-CREATE TABLE recipe_nutrients (
-    id          SERIAL   PRIMARY KEY,
-    recipe_id   INT      NOT NULL REFERENCES recipes(id),
-    nutrient_id INT      NOT NULL REFERENCES nutrients(id),
+CREATE TABLE food_processes (
+    food_id    INT  NOT NULL REFERENCES foods(id),
+    process_id INT  NOT NULL REFERENCES processes(id),
+    PRIMARY KEY (food_id, process_id)
+);
+
+CREATE TABLE food_flavors (
+    food_id   INT  NOT NULL REFERENCES foods(id),
+    flavor_id INT  NOT NULL REFERENCES flavors(id),
+    level     INT,
+    PRIMARY KEY (food_id, flavor_id)
+);
+
+CREATE TABLE food_nutrients (
+    food_id     INT     NOT NULL REFERENCES foods(id),
+    nutrient_id INT     NOT NULL REFERENCES nutrients(id),
     amount      FLOAT,
-    unit        INT      REFERENCES units(id),
-    operator    VARCHAR  -- <, ~, >
+    unit_id     INT     REFERENCES units(id),
+    operator    VARCHAR CHECK (operator IN ('<', '~', '>')),
+    PRIMARY KEY (food_id, nutrient_id)
 );

@@ -1,53 +1,10 @@
 // Open Ingredient — DBML Schema
 // Docs: https://dbml.dbdiagram.io/docs
 
-Table recipes {
-  id            integer     [primary key]
-  name_th       varchar(255)
-  name_en       varchar(255)
-  category_id   integer     [ref: > categories.id]
-  energy        float
-  energy_unit   integer     [ref: > units.id]
-  source        varchar     [note: "e.g. thaifcd"]
-  source_id     varchar     [note: "original id from source"]
-}
-
-Table recipe_processes {
-  id          integer  [primary key]
-  recipe_id   integer  [ref: > recipes.id]
-  process_id  integer  [ref: > processes.id]
-}
-
-Table processes {
+Table units {
   id       integer      [primary key]
-  name_th  varchar(255) [note: "ต้ม, ผัด, นึ่ง"]
+  name_th  varchar(255)
   name_en  varchar(255)
-}
-
-Table recipe_flavors {
-  id        integer  [primary key]
-  recipe_id integer  [ref: > recipes.id]
-  flavor_id integer  [ref: > flavors.id]
-  level     integer
-}
-
-Table flavors {
-  id       integer      [primary key]
-  name_th  varchar(255) [note: "หวาน, เค็ม, เผ็ด"]
-  name_en  varchar(255)
-}
-
-Table foods {
-  id           integer      [primary key]
-  name_th      varchar(255)
-  name_en      varchar(255)
-  category_id  integer      [ref: > categories.id]
-  weight       float
-  weight_unit  integer      [ref: > units.id]
-  energy       float
-  energy_unit  integer      [ref: > units.id]
-  source       varchar      [note: "e.g. thaifcd"]
-  source_id    varchar      [note: "original id from source, e.g. 01005"]
 }
 
 Table categories {
@@ -57,34 +14,78 @@ Table categories {
   parent_id integer      [ref: > categories.id, note: "null = root"]
 }
 
-Table food_nutrients {
-  id          integer  [primary key]
-  food_id     integer  [ref: > foods.id]
-  nutrient_id integer  [ref: > nutrients.id]
-  amount      float
-  unit        integer  [ref: > units.id]
-  operator    varchar  [note: "<, ~, >"]
+Table processes {
+  id       integer      [primary key]
+  name_th  varchar(255) [note: "ต้ม, ผัด, นึ่ง"]
+  name_en  varchar(255)
 }
 
-Table recipe_nutrients {
-  id          integer  [primary key]
-  recipe_id   integer  [ref: > recipes.id]
-  nutrient_id integer  [ref: > nutrients.id]
-  amount      float
-  unit        integer  [ref: > units.id]
-  operator    varchar  [note: "<, ~, >"]
+Table flavors {
+  id       integer      [primary key]
+  name_th  varchar(255) [note: "หวาน, เค็ม, เผ็ด"]
+  name_en  varchar(255)
 }
 
 Table nutrients {
-  id        integer  [primary key]
+  id        integer      [primary key]
   name_th   varchar(255)
   name_en   varchar(255)
   type      varchar
-  parent_id integer  [ref: > nutrients.id, note: "null = root"]
+  parent_id integer      [ref: > nutrients.id, note: "null = root"]
 }
 
-Table units {
-  id       integer  [primary key]
-  name_th  varchar(255)
-  name_en  varchar(255)
+Table foods {
+  id           integer      [primary key]
+  name_th      varchar(255)
+  name_en      varchar(255)
+  category_id  integer      [ref: > categories.id]
+  weight       float        [note: "serving size (optional สำหรับ raw food)"]
+  weight_unit  integer      [ref: > units.id]
+  energy       float
+  energy_unit  integer      [ref: > units.id]
+  is_recipe    boolean      [default: false, note: "flag ว่าเป็นสูตรอาหาร"]
+  source       varchar      [note: "e.g. thaifcd"]
+  source_id    varchar      [note: "original id from source, e.g. 01005"]
+}
+
+Table food_ingredients {
+  food_id        integer  [ref: > foods.id, note: "recipe"]
+  ingredient_id  integer  [ref: > foods.id, note: "component"]
+  amount         float
+  unit_id        integer  [ref: > units.id]
+
+  indexes {
+    (food_id, ingredient_id) [pk]
+  }
+}
+
+Table food_processes {
+  food_id    integer  [ref: > foods.id]
+  process_id integer  [ref: > processes.id]
+
+  indexes {
+    (food_id, process_id) [pk]
+  }
+}
+
+Table food_flavors {
+  food_id   integer  [ref: > foods.id]
+  flavor_id integer  [ref: > flavors.id]
+  level     integer
+
+  indexes {
+    (food_id, flavor_id) [pk]
+  }
+}
+
+Table food_nutrients {
+  food_id     integer  [ref: > foods.id]
+  nutrient_id integer  [ref: > nutrients.id]
+  amount      float
+  unit_id     integer  [ref: > units.id]
+  operator    varchar  [note: "<, ~, >"]
+
+  indexes {
+    (food_id, nutrient_id) [pk]
+  }
 }
