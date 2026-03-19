@@ -1,0 +1,5 @@
+2026-03-19 07:38:57,881 INFO Already done: 0, already failed: 0
+2026-03-19 07:38:57,886 INFO IDs to scrape: 13058 of 13058
+2026-03-19 07:55:16,510 INFO Interrupted by user.
+2026-03-19 07:55:16,511 INFO Done. Success: 86, failed/skipped: 386
+2026-03-19 07:55:16,511 INFO Output: D:\Art\Github\open-ingredient\web-scraping\data\nutrients.csv

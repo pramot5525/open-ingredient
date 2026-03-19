@@ -1,0 +1,4 @@
+/py-convert/input/*
+/py-convert/output/*
+.env
+fcd.usda/data/*.json

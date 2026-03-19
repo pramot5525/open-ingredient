@@ -1,0 +1,78 @@
+// Open Ingredient — DBML Schema
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table recipes {
+  id            integer     [primary key]
+  name_th       varchar(255)
+  name_en       varchar(255)
+  energy        float
+  energy_unit   integer     [ref: > units.id]
+}
+
+Table recipe_processes {
+  id          integer  [primary key]
+  recipe_id   integer  [ref: > recipes.id]
+  process_id  integer  [ref: > processes.id]
+}
+
+Table processes {
+  id       integer      [primary key]
+  name_th  varchar(255) [note: "ต้ม, ผัด, นึ่ง"]
+  name_en  varchar(255)
+}
+
+Table recipe_flavors {
+  id        integer  [primary key]
+  recipe_id integer  [ref: > recipes.id]
+  flavor_id integer  [ref: > flavors.id]
+  level     integer
+}
+
+Table flavors {
+  id       integer      [primary key]
+  name_th  varchar(255) [note: "หวาน, เค็ม, เผ็ด"]
+  name_en  varchar(255)
+}
+
+Table foods {
+  id           integer      [primary key]
+  name_th      varchar(255)
+  name_en      varchar(255)
+  category_id  integer      [ref: > categories.id]
+  weight       float
+  weight_unit  integer      [ref: > units.id]
+  energy       float
+  energy_unit  integer      [ref: > units.id]
+  source       varchar      [note: "e.g. thaifcd"]
+  source_id    varchar      [note: "original id from source, e.g. 01005"]
+}
+
+Table categories {
+  id        integer      [primary key]
+  name_th   varchar(255)
+  name_en   varchar(255)
+  parent_id integer      [ref: > categories.id, note: "null = root"]
+}
+
+Table food_nutrients {
+  id          integer  [primary key]
+  food_id     integer  [ref: > foods.id]
+  nutrient_id integer  [ref: > nutrients.id]
+  amount      float
+  unit        integer  [ref: > units.id]
+  operator    varchar  [note: "<, ~, >"]
+}
+
+Table nutrients {
+  id        integer  [primary key]
+  name_th   varchar(255)
+  name_en   varchar(255)
+  type      varchar
+  parent_id integer  [ref: > nutrients.id, note: "null = root"]
+}
+
+Table units {
+  id       integer  [primary key]
+  name_th  varchar(255)
+  name_en  varchar(255)
+}

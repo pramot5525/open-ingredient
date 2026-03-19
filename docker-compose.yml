@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-open_ingredient}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-open_ingredient}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ollama:
+  #   image: ollama/ollama
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${OLLAMA_PORT:-11434}:11434"
+  #   environment:
+  #     OLLAMA_KEEP_ALIVE: "10m"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: all
+  #             capabilities: [gpu]
+
+  
+
+volumes:
+  pgdata:
+  # ollama_data:
