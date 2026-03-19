@@ -41,8 +41,11 @@ CREATE TABLE recipes (
     id           SERIAL       PRIMARY KEY,
     name_th      VARCHAR(255),
     name_en      VARCHAR(255),
+    category_id  INT          REFERENCES categories(id),
     energy       FLOAT,
-    energy_unit  INT          REFERENCES units(id)
+    energy_unit  INT          REFERENCES units(id),
+    source       VARCHAR,     -- e.g. thaifcd
+    source_id    VARCHAR      -- original id from source
 );
 
 CREATE TABLE recipe_processes (
@@ -74,6 +77,15 @@ CREATE TABLE foods (
 CREATE TABLE food_nutrients (
     id          SERIAL   PRIMARY KEY,
     food_id     INT      NOT NULL REFERENCES foods(id),
+    nutrient_id INT      NOT NULL REFERENCES nutrients(id),
+    amount      FLOAT,
+    unit        INT      REFERENCES units(id),
+    operator    VARCHAR  -- <, ~, >
+);
+
+CREATE TABLE recipe_nutrients (
+    id          SERIAL   PRIMARY KEY,
+    recipe_id   INT      NOT NULL REFERENCES recipes(id),
     nutrient_id INT      NOT NULL REFERENCES nutrients(id),
     amount      FLOAT,
     unit        INT      REFERENCES units(id),
