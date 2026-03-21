@@ -8,7 +8,9 @@ import (
 
 // Handlers bundles all driving-adapter handlers.
 type Handlers struct {
-	Food *handler.FoodHandler
+	Food      *handler.FoodHandler
+	Embedding *handler.EmbeddingHandler
+	Chat      *handler.ChatHandler
 }
 
 // Register mounts all API versions on the app.
@@ -22,6 +24,12 @@ func Register(app *fiber.App, h Handlers) {
 
 func registerV1(r fiber.Router, h Handlers) {
 	h.Food.RegisterRoutes(r)
+	if h.Embedding != nil {
+		h.Embedding.RegisterRoutes(r)
+	}
+	if h.Chat != nil {
+		h.Chat.RegisterRoutes(r)
+	}
 }
 
 // apiVersionHeader injects X-API-Version into every response of a version group.

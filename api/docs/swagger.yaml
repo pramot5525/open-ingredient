@@ -1,0 +1,357 @@
+basePath: /api/v1
+definitions:
+  handler.CalcKcalRequest:
+    properties:
+      ingredients:
+        items:
+          $ref: '#/definitions/handler.IngredientInput'
+        type: array
+    type: object
+  handler.CalcKcalResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/handler.KcalItemResponse'
+        type: array
+      nutrients:
+        items:
+          $ref: '#/definitions/handler.NutrientItem'
+        type: array
+      total_kcal:
+        type: number
+    type: object
+  handler.ChatKcalRequest:
+    properties:
+      message:
+        example: ข้าวมันไก่ 1 จาน ให้กี่แคล
+        type: string
+    type: object
+  handler.ChatKcalResponse:
+    properties:
+      reply:
+        type: string
+      sources:
+        items:
+          $ref: '#/definitions/handler.ChatKcalSource'
+        type: array
+    type: object
+  handler.ChatKcalSource:
+    properties:
+      food_id:
+        type: integer
+      name_en:
+        type: string
+      name_th:
+        type: string
+      similarity:
+        type: number
+    type: object
+  handler.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handler.FoodDetailResponse:
+    properties:
+      energy_kcal:
+        type: number
+      id:
+        type: integer
+      name_en:
+        type: string
+      name_th:
+        type: string
+      nutrients:
+        items:
+          $ref: '#/definitions/handler.NutrientItem'
+        type: array
+      source:
+        type: string
+      weight_g:
+        type: number
+    type: object
+  handler.FoodItem:
+    properties:
+      energy_kcal:
+        type: number
+      id:
+        type: integer
+      name_en:
+        type: string
+      name_th:
+        type: string
+      source:
+        type: string
+      weight_g:
+        type: number
+    type: object
+  handler.IngredientInput:
+    properties:
+      food_id:
+        type: integer
+      weight_g:
+        type: number
+    type: object
+  handler.KcalItemResponse:
+    properties:
+      food_id:
+        type: integer
+      kcal:
+        type: number
+      name_en:
+        type: string
+      name_th:
+        type: string
+      weight_g:
+        type: number
+    type: object
+  handler.NutrientItem:
+    properties:
+      amount:
+        type: number
+      name_en:
+        type: string
+      name_th:
+        type: string
+      nutrient_id:
+        type: integer
+      operator:
+        type: string
+      type:
+        type: string
+      unit:
+        type: string
+    type: object
+  handler.SearchFoodResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/handler.FoodItem'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+    type: object
+  handler.SemanticSearchRequest:
+    properties:
+      limit:
+        type: integer
+      query:
+        type: string
+    type: object
+  handler.SemanticSearchResponse:
+    properties:
+      query:
+        type: string
+      results:
+        items:
+          $ref: '#/definitions/handler.SimilarFoodItem'
+        type: array
+    type: object
+  handler.SimilarFoodItem:
+    properties:
+      food_id:
+        type: integer
+      name_en:
+        type: string
+      name_th:
+        type: string
+      similarity:
+        type: number
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: localhost:3000
+info:
+  contact:
+    name: Open Ingredient
+    url: https://github.com/open-ingredient
+  description: REST API for searching food ingredients and calculating kilocalories.
+  license:
+    name: MIT
+  termsOfService: http://swagger.io/terms/
+  title: Open Ingredient API
+  version: "1.0"
+paths:
+  /foods/{id}:
+    get:
+      description: Get a single food item with all its nutrients by ID.
+      parameters:
+      - description: Food ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-API-Version:
+              description: API version
+              type: string
+          schema:
+            $ref: '#/definitions/handler.FoodDetailResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: Food not found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Get food detail
+      tags:
+      - foods
+  /foods/chat/kcal:
+    post:
+      consumes:
+      - application/json
+      description: Answers free-text questions about calories and nutrients using
+        vector search + local LLM (Ollama).
+      parameters:
+      - description: User question in Thai or English
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.ChatKcalRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.ChatKcalResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: RAG nutrition chat
+      tags:
+      - foods
+  /foods/kcal:
+    post:
+      consumes:
+      - application/json
+      description: Calculate total kcal from a list of ingredients with specified
+        weights in grams. Nutrients are merged and summed across all items.
+      parameters:
+      - description: Ingredient list with weights (weight_g > 0)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.CalcKcalRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-API-Version:
+              description: API version
+              type: string
+          schema:
+            $ref: '#/definitions/handler.CalcKcalResponse'
+        "400":
+          description: Invalid body or weight_g ≤ 0
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "404":
+          description: food_id not found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Calculate kilocalories
+      tags:
+      - foods
+  /foods/search:
+    get:
+      description: Search ingredients/foods by Thai or English name. Returns paginated
+        results.
+      parameters:
+      - description: Search keyword (Thai or English name)
+        example: ข้าว
+        in: query
+        name: q
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-API-Version:
+              description: API version
+              type: string
+          schema:
+            $ref: '#/definitions/handler.SearchFoodResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Search foods
+      tags:
+      - foods
+  /foods/semantic-search:
+    post:
+      consumes:
+      - application/json
+      description: Embeds the query with OpenAI and returns the most similar foods
+        using pgvector cosine distance.
+      parameters:
+      - description: Search query and optional limit (1-100, default 10)
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.SemanticSearchRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.SemanticSearchResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Semantic (vector) food search
+      tags:
+      - foods
+swagger: "2.0"

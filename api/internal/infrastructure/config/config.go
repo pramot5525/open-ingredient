@@ -12,6 +12,14 @@ type Config struct {
 	DBPassword string
 	DBName     string
 	ServerPort string
+
+	// Embedding — works with Ollama (default) or any OpenAI-compatible API.
+	EmbeddingBaseURL string // e.g. "http://ollama:11434" or "https://api.openai.com"
+	EmbeddingModel   string // e.g. "nomic-embed-text" or "text-embedding-3-small"
+	EmbeddingAPIKey  string // optional; leave empty for Ollama
+
+	// LLM — Ollama chat model for RAG responses.
+	LLMModel string // e.g. "llama3.2"
 }
 
 func Load() Config {
@@ -22,6 +30,12 @@ func Load() Config {
 		DBPassword: getEnv("POSTGRES_PASSWORD", "postgres"),
 		DBName:     getEnv("POSTGRES_DB", "open_ingredient"),
 		ServerPort: getEnv("SERVER_PORT", "3000"),
+
+		EmbeddingBaseURL: getEnv("EMBEDDING_BASE_URL", "http://localhost:11434"),
+		EmbeddingModel:   getEnv("EMBEDDING_MODEL", "nomic-embed-text"),
+		EmbeddingAPIKey:  getEnv("EMBEDDING_API_KEY", ""),
+
+		LLMModel: getEnv("LLM_MODEL", "llama3.2"),
 	}
 }
 

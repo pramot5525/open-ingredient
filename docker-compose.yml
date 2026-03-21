@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:17-alpine
+    image: pgvector/pgvector:pg17
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-open_ingredient}
@@ -16,6 +16,26 @@ services:
       timeout: 5s
       retries: 5
 
+  ollama:
+    image: ollama/ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
   api:
     build:
       context: ./api
@@ -30,6 +50,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-open_ingredient}
+      EMBEDDING_BASE_URL: "http://ollama:11434"
+      EMBEDDING_MODEL: "mxbai-embed-large"
+      LLM_MODEL: "llama3.2"
     volumes:
       - ./api:/app
       - go_modules:/go/pkg/mod
@@ -40,4 +63,4 @@ services:
 volumes:
   pgdata:
   go_modules:
-
+  ollama_data:
