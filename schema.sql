@@ -37,11 +37,20 @@ CREATE TABLE nutrients (
     parent_id INT          REFERENCES nutrients(id)  -- null = root
 );
 
+CREATE TABLE brands (
+    id          SERIAL       PRIMARY KEY,
+    name_th     VARCHAR(255),
+    name_en     VARCHAR(255),
+    logo_url    VARCHAR,
+    website_url VARCHAR
+);
+
 CREATE TABLE foods (
     id           SERIAL        PRIMARY KEY,
     name_th      VARCHAR(255),
     name_en      VARCHAR(255),
     category_id  INT           REFERENCES categories(id),
+    brand_id     INT           REFERENCES brands(id),  -- null = generic / unbranded
     weight       FLOAT,        -- serving size (optional สำหรับ raw food)
     weight_unit  INT           REFERENCES units(id),
     energy       FLOAT,
@@ -80,4 +89,33 @@ CREATE TABLE food_nutrients (
     unit_id     INT     REFERENCES units(id),
     operator    VARCHAR CHECK (operator IN ('<', '~', '>')),
     PRIMARY KEY (food_id, nutrient_id)
+);
+
+CREATE TABLE users (
+    id         SERIAL       PRIMARY KEY,
+    email      VARCHAR(255) NOT NULL UNIQUE,
+    name       VARCHAR(255),
+    created_at TIMESTAMPTZ  NOT NULL DEFAULT now()
+);
+
+CREATE TABLE user_meals (
+    id         SERIAL      PRIMARY KEY,
+    user_id    INT         NOT NULL REFERENCES users(id),
+    eaten_at   TIMESTAMPTZ NOT NULL,
+    meal_type  VARCHAR     NOT NULL CHECK (meal_type IN ('breakfast', 'lunch', 'dinner', 'snack')),
+    is_buffet  BOOLEAN     NOT NULL DEFAULT false,
+    note       VARCHAR
+);
+
+CREATE INDEX ON user_meals (user_id, eaten_at);
+
+CREATE TABLE user_meal_foods (
+    id        SERIAL  PRIMARY KEY,
+    meal_id   INT     NOT NULL REFERENCES user_meals(id),
+    food_id   INT     NOT NULL REFERENCES foods(id),
+    weight_g  FLOAT,           -- grams per serving; null if unknown (e.g. soup)
+    volume_ml FLOAT,           -- ml for liquids
+    qty       INT     NOT NULL DEFAULT 1,  -- number of servings/plates
+    note      VARCHAR,
+    UNIQUE (meal_id, food_id)
 );

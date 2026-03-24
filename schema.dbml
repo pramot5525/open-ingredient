@@ -34,11 +34,20 @@ Table nutrients {
   parent_id integer      [ref: > nutrients.id, note: "null = root"]
 }
 
+Table brands {
+  id          integer      [primary key, increment]
+  name_th     varchar(255)
+  name_en     varchar(255)
+  logo_url    varchar
+  website_url varchar
+}
+
 Table foods {
   id           integer      [primary key]
   name_th      varchar(255)
   name_en      varchar(255)
   category_id  integer      [ref: > categories.id]
+  brand_id     integer      [ref: > brands.id, note: "null = generic / unbranded"]
   weight       float        [note: "serving size (optional สำหรับ raw food)"]
   weight_unit  integer      [ref: > units.id]
   energy       float
@@ -87,5 +96,39 @@ Table food_nutrients {
 
   indexes {
     (food_id, nutrient_id) [pk]
+  }
+}
+
+Table users {
+  id         integer      [primary key, increment]
+  email      varchar(255) [unique, not null]
+  name       varchar(255)
+  created_at timestamp    [default: `now()`]
+}
+
+Table user_meals {
+  id         integer   [primary key, increment]
+  user_id    integer   [ref: > users.id, not null]
+  eaten_at   timestamp [not null, note: "datetime of the meal"]
+  meal_type  varchar   [not null, note: "breakfast, lunch, dinner, snack"]
+  is_buffet  boolean   [default: false, note: "true = buffet, multiple rounds allowed"]
+  note       varchar
+
+  indexes {
+    (user_id, eaten_at)
+  }
+}
+
+Table user_meal_foods {
+  id        integer [primary key, increment]
+  meal_id   integer [ref: > user_meals.id, not null]
+  food_id   integer [ref: > foods.id, not null]
+  weight_g  float   [note: "grams per serving; null if unknown (e.g. soup)"]
+  volume_ml float   [note: "ml for liquids; null if not applicable"]
+  qty       integer [not null, default: 1, note: "number of servings/plates"]
+  note      varchar
+
+  indexes {
+    (meal_id, food_id) [unique]
   }
 }
